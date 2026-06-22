@@ -208,14 +208,6 @@ function MobileApp() {
           </div>
 
           <div className="scanner-controls">
-            <button
-              type="button"
-              className="torch-btn"
-              onClick={toggleTorch}
-              aria-label="Alternar linterna"
-            >
-              {torchActive ? '💡 Luz ON' : '🔦 Luz OFF'}
-            </button>
           </div>
         </section>
       )}
