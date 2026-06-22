@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import QrScanner from 'qr-scanner'
 import './MobileApp.css'
+import cameraIcon from './assets/camera-icon.svg'
+import pencilIcon from './assets/pencil-icon.svg'
 
 const initialResult = {
   summary: '',
@@ -190,7 +192,7 @@ Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
                 className="mode-btn camera-btn"
                 onClick={handleStartScanning}
               >
-                <span className="mode-icon">📷</span>
+                <img src={cameraIcon} alt="Cámara" className="mode-icon-img" />
                 <span className="mode-text">Escanear con cámara</span>
               </button>
               <button
@@ -198,7 +200,7 @@ Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
                 className="mode-btn manual-btn"
                 onClick={handleStartManual}
               >
-                <span className="mode-icon">⌨️</span>
+                <img src={pencilIcon} alt="Lápiz" className="mode-icon-img" />
                 <span className="mode-text">Escribir manualmente</span>
               </button>
             </div>

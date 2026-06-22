@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f6f1ed 0%, #faf8f5 100%);
+  background: linear-gradient(135deg, #e8e6ed 0%, #f2f0f7 100%);
   color: #25222a;
   width: 100%;
   max-width: 100%;
@@ -13,8 +13,8 @@
 .mobile-header {
   padding: 20px 16px 24px;
   text-align: center;
-  border-bottom: 1px solid rgba(37, 34, 42, 0.08);
-  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(37, 34, 42, 0.12);
+  background: rgba(242, 240, 247, 0.98);
 }
 
 .mobile-header h1 {
@@ -146,7 +146,7 @@
   justify-content: center;
   height: 100%;
   padding: 40px 20px;
-  background: linear-gradient(135deg, #f6f1ed 0%, #faf8f5 100%);
+  background: linear-gradient(135deg, #e8e6ed 0%, #f2f0f7 100%);
   text-align: center;
 }
 
@@ -188,8 +188,8 @@
 
 .status-bar-mobile {
   padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.95);
-  border-bottom: 1px solid rgba(37, 34, 42, 0.08);
+  background: rgba(242, 240, 247, 0.98);
+  border-bottom: 1px solid rgba(37, 34, 42, 0.12);
   text-align: center;
 }
 
@@ -206,7 +206,7 @@
 
 .actions-mobile {
   padding: 16px 12px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(242, 240, 247, 0.98);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -268,9 +268,9 @@
 }
 
 .result-section-mobile {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(242, 240, 247, 0.98);
     padding: 18px 12px;
-  border-top: 1px solid rgba(37, 34, 42, 0.08);
+  border-top: 1px solid rgba(37, 34, 42, 0.12);
     width: 100%;
     box-sizing: border-box;
 }
@@ -283,10 +283,10 @@
 }
 
 .result-details {
-  background: #fbf8f6;
+  background: #ebe9f1;
     padding: 14px;
     border-radius: 12px;
-  border: 1px solid rgba(37, 34, 42, 0.08);
+  border: 1px solid rgba(37, 34, 42, 0.12);
     max-height: 250px;
   overflow-y: auto;
     box-sizing: border-box;
@@ -375,6 +375,14 @@
 .mode-icon {
   font-size: 22px;
   flex-shrink: 0;
+}
+
+.mode-icon-img {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #8061f5;
+  stroke: #8061f5;
 }
 
 .mode-text {

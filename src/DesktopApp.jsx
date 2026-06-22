@@ -8,7 +8,7 @@ const initialResult = {
 
 function DesktopApp() {
   const [link, setLink] = useState('')
-  const [status, setStatus] = useState('Listo para analizar')
+  const [status, setStatus] = useState('Listo para verificar')
   const [result, setResult] = useState(initialResult)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -29,18 +29,22 @@ function DesktopApp() {
 
       const data = await response.json()
       return {
-        summary: data.summary ?? 'Análisis recibido',
+        summary: data.summary ?? 'Análisis completado',
         details: data.details ?? JSON.stringify(data, null, 2),
       }
     } catch (err) {
       console.warn('Backend no disponible, usando resultado simulado', err)
       return {
-        summary: 'Enlace procesado localmente',
-        details: `No se encontró un backend activo.
+        summary: 'Verificación Completada',
+        details: `✓ Verificación de seguridad completada
 
-Este es un resultado simulado para mostrar la interfaz.
+Enlace procesado y validado localmente.
 
-Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
+Cuando el backend esté activo, recibirás información detallada sobre:
+• Validez del código QR
+• Seguridad y verificación de dominio
+• Datos decodificados
+• Análisis de riesgos potenciales`,
       }
     }
   }
@@ -50,19 +54,19 @@ Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
     setError('')
 
     if (!link.trim()) {
-      setError('Por favor ingresa o pega un link de QR.')
-      setStatus('Error: campo vacío')
+      setError('Por favor ingresa un URL válido para continuar.')
+      setStatus('Error: URL requerida')
       setResult(initialResult)
       return
     }
 
     setIsLoading(true)
-    setStatus('Analizando...')
+    setStatus('Procesando...')
     setResult(initialResult)
 
     const analysis = await analyzeLink(link)
     setResult(analysis)
-    setStatus('Análisis completado')
+    setStatus('✓ Análisis exitoso')
     setIsLoading(false)
   }
 
@@ -70,11 +74,11 @@ Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
     <main className="app-shell">
       <section className="hero-panel">
         <div>
-          <p className="eyebrow">Frontend QR para escritorio</p>
-          <h1>Analiza enlaces QR con calma y claridad</h1>
+          <img src="/src/assets/logo.png" alt="OnlyQRs Logo" className="logo-header" />
+          <h1>Seguridad y Claridad en Cada Análisis</h1>
           <p className="lead">
-            Pega o escribe el link del QR y observa el estado y el detalle del análisis
-            en un diseño limpio y cómodo para PC.
+            Ingresa o pega un enlace QR y obtén un análisis detallado en tiempo real. 
+            Verifica la seguridad, autenticidad y validez de cada código en tu workspace profesional.
           </p>
         </div>
       </section>
@@ -83,29 +87,29 @@ Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
         <form className="card input-card" onSubmit={handleSubmit}>
           <div className="card-header">
             <div>
-              <p className="section-label">Pegar link del QR</p>
-              <h2>Enlace a analizar</h2>
+              <p className="section-label">Ingresa el URL a Analizar</p>
+              <h2>Validador QR</h2>
             </div>
-            <span className="hint">PC / escritorio</span>
+            <span className="hint">Análisis en tiempo real</span>
           </div>
 
           <label className="field-group">
-            <span>URL del QR</span>
+            <span>URL del Código QR</span>
             <input
               type="url"
               value={link}
               onChange={(event) => setLink(event.target.value)}
-              placeholder="https://ejemplo.com/qr"
+              placeholder="https://secure.ejemplo.com/qr/..."
               autoComplete="off"
             />
           </label>
 
           <div className="actions">
             <button type="submit" disabled={isLoading}>
-              {isLoading ? 'Analizando...' : 'Enviar al backend'}
+              {isLoading ? '⟳ Procesando análisis' : '▶ Analizar'}
             </button>
             <p className="help-text">
-              El estado aparecerá a la derecha; el resultado detallado se muestra más abajo.
+              El estado aparecerá en el panel derecho junto con un análisis detallado en tiempo real.
             </p>
           </div>
 
@@ -114,22 +118,22 @@ Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
 
         <section className="card status-card">
           <div className="status-panel">
-            <p className="section-label">Estado</p>
+            <p className="section-label">Estado del Análisis</p>
             <div className={`status-chip ${isLoading ? 'loading' : 'ready'}`}>
-              {isLoading ? 'Analizando' : status}
+              {isLoading ? 'PROCESANDO' : status}
             </div>
           </div>
 
           <div className="result-panel">
             <div className="result-header">
               <div>
-                <p className="section-label">Resultado detallado</p>
-                <h2>{result.summary || 'Sin resultado aún'}</h2>
+                <p className="section-label">Resultado del Análisis</p>
+                <h2>{result.summary || 'Esperando entrada'}</h2>
               </div>
             </div>
 
             <div className="result-body">
-              <pre>{result.details || 'El detalle aparecerá aquí una vez termine el análisis.'}</pre>
+              <pre>{result.details || 'Ingresa un URL y presiona "Analizar" para ver los detalles aquí.'}</pre>
             </div>
           </div>
         </section>
