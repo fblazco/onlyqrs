@@ -60,6 +60,46 @@ function getRecommendation(evaluacion) {
   return 'No hay recomendación clara.'
 }
 
+function buildEducationalSection(reporte_seguridad) {
+  if (!reporte_seguridad) {
+    return 'No hay información adicional disponible en este momento.'
+  }
+
+  const { objetivo, evaluacion, datos_tecnicos } = reporte_seguridad
+  const advertencias = Array.isArray(evaluacion?.advertencias) ? evaluacion.advertencias : []
+  const lines = [
+    '🔍 Qué debes saber sobre este análisis',
+    '',
+    'Este informe te ayuda a entender el nivel de riesgo asociado con la URL analizada.',
+    `Dominio base: ${normalizeString(objetivo?.dominio_base)}`,
+    `Nivel de riesgo: ${normalizeString(evaluacion?.nivel_riesgo)}`,
+    `¿Seguro?: ${evaluacion?.es_seguro ? 'Sí' : 'No'}`,
+    '',
+    'Consejos básicos:',
+    '• Si el sitio es desconocido y el riesgo es medio o alto, evita ingresar contraseñas o datos personales.',
+    '• Un dominio muy nuevo o con privacidad WHOIS puede ser un indicio de phishing.',
+    '• Si la URL expira pronto, el sitio podría ser temporal o fraudulento.',
+    '',
+    'Qué debes revisar:',
+    `• Edad del dominio: ${normalizeString(datos_tecnicos?.antiguedad_dias)} días`,
+    `• Fecha de creación: ${normalizeString(datos_tecnicos?.fecha_creacion)}`,
+    `• Fecha de expiración: ${normalizeString(datos_tecnicos?.fecha_expiracion)}`,
+    `• Registrador: ${formatEmpresaRegistradora(datos_tecnicos?.empresa_registradora)}`,
+    `• Propietario: ${formatPropietario(datos_tecnicos?.propietario)}`,
+  ]
+
+  if (advertencias.length > 0) {
+    lines.push('', 'Advertencias detectadas:')
+    advertencias.forEach((item) => {
+      lines.push(`• ${item}`)
+    })
+  }
+
+  lines.push('', 'Recuerda que estos datos complementan tu criterio. Siempre confirma el dominio y evita ingresar información sensible en sitios no confiables.')
+
+  return lines.join('\n')
+}
+
 function formatScannerResult(data) {
   if (!data || !data.success || !data.reporte_seguridad) {
     throw new Error(data?.message || 'Respuesta inválida del servidor')
@@ -97,11 +137,15 @@ function formatScannerResult(data) {
   return {
     summary,
     details: detalles.join('\n'),
+    education: buildEducationalSection(data.reporte_seguridad),
   }
 }
 
-async function verifyScannerUrl(url) {
-  const payload = { url: url.trim() }
+async function verifyScannerUrl(url, analyzer = 'OnlyQRs (Predeterminado)') {
+  const payload = {
+    url: url.trim(),
+    analyzer,
+  }
 
   const response = await fetch(VERIFY_ENDPOINT, {
     method: 'POST',
