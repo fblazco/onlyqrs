@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import { verifyScannerUrl, formatScannerResult } from './api'
 
 const initialResult = {
   summary: '',
@@ -14,55 +15,8 @@ function DesktopApp() {
   const [error, setError] = useState('')
 
   const analyzeLink = async (linkToAnalyze) => {
-    const payload = { url: linkToAnalyze.trim() }
-
-    try {
-      const response = await fetch('http://localhost:3000/api/scanner/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        throw new Error('No se pudo conectar con el servidor')
-      }
-
-      const data = await response.json()
-      if (data.success && data.reporte_seguridad) {
-        const reporte = data.reporte_seguridad
-        const evaluacion = reporte.evaluacion
-        return {
-          summary: `Nivel de Riesgo: ${evaluacion.nivel_riesgo}`,
-          details: `🔒 INFORME DE SEGURIDAD
-${'-'.repeat(50)}
-
-📍 URL Analizada:
-${reporte.objetivo.url_completa}
-
-⚠️  EVALUACIÓN DE RIESGO:
-• Nivel: ${evaluacion.nivel_riesgo}
-• Seguro: ${evaluacion.es_seguro ? 'Sí' : 'No'}
-• Banderas Rojas: ${evaluacion.total_banderas_rojas}
-
-${evaluacion.advertencias.length > 0 ? '🚩 ADVERTENCIAS:\n' + evaluacion.advertencias.map(a => `  • ${a}`).join('\n') : '✅ Sin advertencias'}
-
-📋 DATOS TÉCNICOS:
-• Antigüedad: ${reporte.datos_tecnicos.antiguedad_dias} días
-• Creación: ${reporte.datos_tecnicos.fecha_creacion}
-• Expiración: ${reporte.datos_tecnicos.fecha_expiracion}
-• Registrador: ${reporte.datos_tecnicos.empresa_registradora}
-• Propietario: ${reporte.datos_tecnicos.propietario.organizacion}
-• País: ${reporte.datos_tecnicos.propietario.pais}`,
-        }
-      }
-      return {
-        summary: 'Análisis completado',
-        details: JSON.stringify(data, null, 2),
-      }
-    } catch (err) {
-      console.error('Error al conectar con el backend:', err)
-      throw err
-    }
+    const data = await verifyScannerUrl(linkToAnalyze)
+    return formatScannerResult(data)
   }
 
   const handleSubmit = async (event) => {
@@ -80,10 +34,16 @@ ${evaluacion.advertencias.length > 0 ? '🚩 ADVERTENCIAS:\n' + evaluacion.adver
     setStatus('Procesando...')
     setResult(initialResult)
 
-    const analysis = await analyzeLink(link)
-    setResult(analysis)
-    setStatus('✓ Análisis exitoso')
-    setIsLoading(false)
+    try {
+      const analysis = await analyzeLink(link)
+      setResult(analysis)
+      setStatus('✓ Análisis exitoso')
+    } catch (err) {
+      setError(err.message || 'No se pudo completar el análisis')
+      setStatus('Error al analizar')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import QrScanner from 'qr-scanner'
 import './MobileApp.css'
+import { verifyScannerUrl, formatScannerResult } from './api'
 import cameraIcon from './assets/camera-icon.svg'
 import pencilIcon from './assets/pencil-icon.svg'
 
@@ -80,50 +81,8 @@ function MobileApp() {
   }
 
   const analyzeLink = async (linkToAnalyze) => {
-    const payload = { url: linkToAnalyze.trim() }
-
-    try {
-      const response = await fetch('http://localhost:3000/api/scanner/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        throw new Error('No se pudo conectar con el servidor')
-      }
-
-      const data = await response.json()
-      if (data.success && data.reporte_seguridad) {
-        const reporte = data.reporte_seguridad
-        const evaluacion = reporte.evaluacion
-        return {
-          summary: `Riesgo: ${evaluacion.nivel_riesgo}`,
-          details: `🔒 INFORME DE SEGURIDAD
-${'-'.repeat(50)}
-
-📍 URL: ${reporte.objetivo.url_completa}
-
-⚠️  EVALUACIÓN:
-• Nivel: ${evaluacion.nivel_riesgo}
-• Seguro: ${evaluacion.es_seguro ? 'Sí' : 'No'}
-• Alertas: ${evaluacion.total_banderas_rojas}
-
-${evaluacion.advertencias.length > 0 ? '🚩 ADVERTENCIAS:\n' + evaluacion.advertencias.map(a => `• ${a}`).join('\n') : '✅ OK'}
-
-📋 DATOS:
-• Antigüedad: ${reporte.datos_tecnicos.antiguedad_dias} días
-• País: ${reporte.datos_tecnicos.propietario.pais}`,
-        }
-      }
-      return {
-        summary: 'Análisis recibido',
-        details: JSON.stringify(data, null, 2),
-      }
-    } catch (err) {
-      console.error('Error al conectar con el backend:', err)
-      throw err
-    }
+    const data = await verifyScannerUrl(linkToAnalyze)
+    return formatScannerResult(data)
   }
 
   const handleStartScanning = () => {
@@ -157,10 +116,16 @@ ${evaluacion.advertencias.length > 0 ? '🚩 ADVERTENCIAS:\n' + evaluacion.adver
     setStatus('Analizando...')
     setResult(initialResult)
 
-    const analysis = await analyzeLink(linkToUse)
-    setResult(analysis)
-    setStatus('Análisis completado')
-    setIsLoading(false)
+    try {
+      const analysis = await analyzeLink(linkToUse)
+      setResult(analysis)
+      setStatus('Análisis completado')
+    } catch (err) {
+      setError(err.message || 'No se pudo completar el análisis')
+      setStatus('Error al analizar')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleRescan = async () => {
