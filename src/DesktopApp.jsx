@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import './App.css'
-import logo from './assets/logo.png'
 import { verifyScannerUrl, formatScannerResult } from './api'
 
 const initialResult = {
@@ -51,7 +50,7 @@ function DesktopApp() {
     <main className="app-shell">
       <section className="hero-panel">
         <div>
-          <img src={logo} alt="OnlyQRs Logo" className="logo-header" />
+          <img src="/logo.png" alt="OnlyQRs Logo" className="logo-header" />
           <h1>Seguridad y Claridad en Cada Análisis</h1>
           <p className="lead">
             Ingresa o pega un enlace QR y obtén un análisis detallado en tiempo real. 
