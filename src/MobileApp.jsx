@@ -20,6 +20,18 @@ function MobileApp() {
   const [error, setError] = useState('')
   const [mode, setMode] = useState('idle') // 'idle' | 'scanning' | 'manual'
   const [torchActive, setTorchActive] = useState(false)
+  const [showMoreInfo, setShowMoreInfo] = useState(false)
+  const [selectedAnalyzer, setSelectedAnalyzer] = useState('OnlyQRs (predeterminado)')
+  const [showAnalyzerOptions, setShowAnalyzerOptions] = useState(false)
+  const [showAnalyzerGuide, setShowAnalyzerGuide] = useState(false)
+  const analyzerOptions = [
+    'OnlyQRs (predeterminado)',
+    'VirusTotal',
+    'WhoIs',
+    'Google Safe browsing',
+    'URLScan.io',
+    'PishTank',
+  ]
   const scannerRef = useRef(null)
 
   useEffect(() => {
@@ -44,8 +56,8 @@ function MobileApp() {
           (result) => handleQrScanned(result.data),
           {
             onDecodeError: () => {},
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
+            highlightScanRegion: false,
+            highlightCodeOutline: false,
           }
         )
 
@@ -81,7 +93,7 @@ function MobileApp() {
   }
 
   const analyzeLink = async (linkToAnalyze) => {
-    const data = await verifyScannerUrl(linkToAnalyze)
+    const data = await verifyScannerUrl(linkToAnalyze, selectedAnalyzer)
     return formatScannerResult(data)
   }
 
@@ -90,6 +102,7 @@ function MobileApp() {
     setManualLink('')
     setError('')
     setResult(initialResult)
+    setShowAnalyzerOptions(false)
     setMode('scanning')
   }
 
@@ -98,6 +111,7 @@ function MobileApp() {
     setManualLink('')
     setError('')
     setResult(initialResult)
+    setShowAnalyzerOptions(false)
     setMode('manual')
   }
 
@@ -115,6 +129,7 @@ function MobileApp() {
     setIsLoading(true)
     setStatus('Analizando...')
     setResult(initialResult)
+    setShowMoreInfo(false)
 
     try {
       const analysis = await analyzeLink(linkToUse)
@@ -134,6 +149,7 @@ function MobileApp() {
     setStatus('Elige cómo ingresar el QR')
     setResult(initialResult)
     setError('')
+    setShowMoreInfo(false)
     setMode('idle')
   }
 
@@ -158,11 +174,104 @@ function MobileApp() {
   return (
     <main className="mobile-app-shell">
       <header className="mobile-header">
-        <h1>OnlyQR</h1>
+        <img src="/logo.png" alt="OnlyQRs Logo" className="mobile-logo" />
         <p className="mobile-subtitle">Escanea o pega QR desde tu teléfono</p>
       </header>
 
-      {mode === 'idle' && !activeLink && (
+      {showAnalyzerGuide ? (
+        <section className="guide-page">
+          <div className="guide-header">
+            <h2>¿Cómo decidir?</h2>
+            <p className="guide-intro">
+              Usa esta guía para comparar cada analizador.
+              Rellena los pros y contras según el comportamiento de cada uno.
+            </p>
+          </div>
+
+          <div className="guide-content">
+            <article className="guide-card">
+              <h3>OnlyQRs (predeterminado)</h3>
+              <p className="guide-subtitle">Pros</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+                <li>• Más información aquí.</li>
+              </ul>
+              <p className="guide-subtitle">Contras</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <h3>VirusTotal</h3>
+              <p className="guide-subtitle">Pros</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+              <p className="guide-subtitle">Contras</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <h3>WhoIs</h3>
+              <p className="guide-subtitle">Pros</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+              <p className="guide-subtitle">Contras</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <h3>Google Safe browsing</h3>
+              <p className="guide-subtitle">Pros</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+              <p className="guide-subtitle">Contras</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <h3>URLScan.io</h3>
+              <p className="guide-subtitle">Pros</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+              <p className="guide-subtitle">Contras</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <h3>PishTank</h3>
+              <p className="guide-subtitle">Pros</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+              <p className="guide-subtitle">Contras</p>
+              <ul>
+                <li>• Texto de ejemplo para completar.</li>
+              </ul>
+            </article>
+          </div>
+
+          <button
+            type="button"
+            className="btn-secondary guide-back-btn"
+            onClick={() => setShowAnalyzerGuide(false)}
+          >
+            Volver al inicio
+          </button>
+        </section>
+      ) : mode === 'idle' && !activeLink && (
         <section className="mode-selector">
           <div className="selector-content">
             <h2>¿Cómo quieres ingresar el QR?</h2>
@@ -182,6 +291,44 @@ function MobileApp() {
               >
                 <img src={pencilIcon} alt="Lápiz" className="mode-icon-img" />
                 <span className="mode-text">Escribir manualmente</span>
+              </button>
+            </div>
+            <div className="analyzer-selection-block">
+              <h2>¿Qué analizador quieres usar?</h2>
+              <button
+                type="button"
+                className="mode-btn analyzer-select-btn"
+                onClick={() => setShowAnalyzerOptions((current) => !current)}
+              >
+                <span className="mode-text">{selectedAnalyzer}</span>
+                <span className="analyzer-chevron">▾</span>
+              </button>
+              {showAnalyzerOptions && (
+                <div className="analyzer-options">
+                  {analyzerOptions.map((option) => (
+                    <button
+                      type="button"
+                      key={option}
+                      className={`mode-btn analyzer-option-btn ${selectedAnalyzer === option ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelectedAnalyzer(option)
+                        setShowAnalyzerOptions(false)
+                      }}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                className="mode-btn guide-btn"
+                onClick={() => {
+                  setShowAnalyzerGuide(true)
+                  setShowAnalyzerOptions(false)
+                }}
+              >
+                ¿Cómo decidir?
               </button>
             </div>
           </div>
@@ -207,15 +354,7 @@ function MobileApp() {
             </div>
           </div>
 
-          <div className="scanner-controls">
-            <button
-              type="button"
-              className="torch-btn"
-              onClick={toggleTorch}
-              aria-label="Alternar linterna"
-            >
-              {torchActive ? '💡 Luz ON' : '🔦 Luz OFF'}
-            </button>
+          <div className="scanner-controls mobile-analyzer-selector">
           </div>
         </section>
       )}
@@ -234,6 +373,7 @@ function MobileApp() {
                 autoFocus
               />
             </label>
+
             {error ? <p className="form-error">{error}</p> : null}
           </div>
         </section>
@@ -291,8 +431,37 @@ function MobileApp() {
           <div className="result-details">
             <pre>{result.details}</pre>
           </div>
+
+          <button
+            type="button"
+            className="btn-secondary more-info-btn"
+            onClick={() => setShowMoreInfo((current) => !current)}
+          >
+            {showMoreInfo ? 'Ocultar más información' : 'Ver más información'}
+          </button>
         </section>
       )}
+
+      {showMoreInfo && result.education ? (
+        <div className="education-modal-overlay" onClick={() => setShowMoreInfo(false)}>
+          <div className="education-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="education-modal-header">
+              <h3>Sección educativa</h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setShowMoreInfo(false)}
+                aria-label="Cerrar información"
+              >
+                ×
+              </button>
+            </div>
+            <div className="education-modal-content">
+              <pre>{result.education}</pre>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   )
 }

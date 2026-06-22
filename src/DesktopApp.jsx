@@ -5,6 +5,7 @@ import { verifyScannerUrl, formatScannerResult } from './api'
 const initialResult = {
   summary: '',
   details: '',
+  education: '',
 }
 
 function DesktopApp() {
@@ -13,9 +14,22 @@ function DesktopApp() {
   const [result, setResult] = useState(initialResult)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showMoreInfo, setShowMoreInfo] = useState(false)
+  const [selectedAnalyzer, setSelectedAnalyzer] = useState('OnlyQRs (Predeterminado)')
+  const [showAnalyzerOptions, setShowAnalyzerOptions] = useState(false)
+  const [isAboutOpen, setIsAboutOpen] = useState(false)
+  const [homeKey, setHomeKey] = useState(0)
+  const analyzerOptions = [
+    'OnlyQRs (Predeterminado)',
+    'VirusTotal',
+    'WhoIs',
+    'Google Safe browsing',
+    'URLScan.io',
+    'PishTank',
+  ]
 
-  const analyzeLink = async (linkToAnalyze) => {
-    const data = await verifyScannerUrl(linkToAnalyze)
+  const analyzeLink = async (linkToAnalyze, analyzer) => {
+    const data = await verifyScannerUrl(linkToAnalyze, analyzer)
     return formatScannerResult(data)
   }
 
@@ -33,9 +47,10 @@ function DesktopApp() {
     setIsLoading(true)
     setStatus('Procesando...')
     setResult(initialResult)
+    setShowMoreInfo(false)
 
     try {
-      const analysis = await analyzeLink(link)
+      const analysis = await analyzeLink(link, selectedAnalyzer)
       setResult(analysis)
       setStatus('✓ Análisis exitoso')
     } catch (err) {
@@ -46,8 +61,56 @@ function DesktopApp() {
     }
   }
 
+  if (isAboutOpen) {
+    return (
+      <main className="app-shell">
+        <section className="card about-page">
+          <div className="card-header">
+            <div>
+              <p className="section-label">Conoce OnlyQRs</p>
+              <h2>Sobre nuestra plataforma</h2>
+            </div>
+          </div>
+
+          <div className="about-content">
+            <p>
+              OnlyQRs ofrece una experiencia profesional para validar enlaces QR con un análisis claro y confiable.
+              Nuestra plataforma combina verificación de seguridad, evaluaciones de reputación y resultados accesibles para
+              ayudarte a tomar decisiones informadas al instante.
+            </p>
+
+            <ul>
+              <li>Escaneo rápido de URLs y detección de riesgos en tiempo real.</li>
+              <li>Soporte para múltiples analizadores de seguridad.</li>
+              <li>Interfaz limpia pensada para uso profesional en escritorio.</li>
+              <li>Acceso sencillo a informes detallados y recomendaciones.</li>
+            </ul>
+
+            <p>
+              Esta página está diseñada para mostrar cómo funciona OnlyQRs en un entorno de escritorio. La versión móvil
+              se implementará posteriormente para brindar una experiencia igual de ágil y confiable.
+            </p>
+          </div>
+
+          <div className="about-actions">
+            <button
+              type="button"
+              className="actions-button"
+              onClick={() => {
+                setIsAboutOpen(false)
+                setHomeKey((prev) => prev + 1)
+              }}
+            >
+              Volver al inicio
+            </button>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
   return (
-    <main className="app-shell">
+    <main className="app-shell" key={homeKey}>
       <section className="hero-panel">
         <div>
           <img src="/logo.png" alt="OnlyQRs Logo" className="logo-header" />
@@ -80,6 +143,35 @@ function DesktopApp() {
             />
           </label>
 
+          <div className="analyzer-selector">
+            <span className="analyzer-label">Elegir analizador</span>
+            <button
+              type="button"
+              className="analyzer-toggle-btn"
+              onClick={() => setShowAnalyzerOptions((current) => !current)}
+            >
+              {selectedAnalyzer}
+              <span className="analyzer-chevron">▾</span>
+            </button>
+            {showAnalyzerOptions && (
+              <div className="analyzer-options-pc">
+                {analyzerOptions.map((option) => (
+                  <button
+                    type="button"
+                    key={option}
+                    className={`analyzer-option-btn ${selectedAnalyzer === option ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedAnalyzer(option)
+                      setShowAnalyzerOptions(false)
+                    }}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="actions">
             <button type="submit" disabled={isLoading}>
               {isLoading ? '⟳ Procesando análisis' : '▶ Analizar'}
@@ -111,9 +203,50 @@ function DesktopApp() {
             <div className="result-body">
               <pre>{result.details || 'Ingresa un URL y presiona "Analizar" para ver los detalles aquí.'}</pre>
             </div>
+
+            {result.summary ? (
+              <button
+                type="button"
+                className="more-info-btn"
+                onClick={() => setShowMoreInfo((current) => !current)}
+              >
+                {showMoreInfo ? 'Ocultar más información' : 'Ver más información'}
+              </button>
+            ) : null}
           </div>
         </section>
+
+        <div className="about-action">
+          <button
+            type="button"
+            className="secondary-action-btn"
+            onClick={() => setIsAboutOpen(true)}
+          >
+            ¿Cómo decidir?
+          </button>
+        </div>
       </section>
+
+      {showMoreInfo && result.education ? (
+        <div className="education-modal-overlay" onClick={() => setShowMoreInfo(false)}>
+          <div className="education-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="education-modal-header">
+              <h3>Sección educativa</h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setShowMoreInfo(false)}
+                aria-label="Cerrar información"
+              >
+                ×
+              </button>
+            </div>
+            <div className="education-modal-content">
+              <pre>{result.education}</pre>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   )
 }
