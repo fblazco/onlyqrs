@@ -37,6 +37,29 @@ function formatPropietario(entry) {
   return parts.length > 0 ? parts.join(' · ') : 'No disponible'
 }
 
+function getRecommendation(evaluacion) {
+  const nivel = (evaluacion?.nivel_riesgo || '').toString().toUpperCase()
+  const esSeguro = Boolean(evaluacion?.es_seguro)
+
+  if (nivel === 'MEDIO') {
+    return 'No es recomendable entrar, incluso si la evaluación aparece como segura.'
+  }
+
+  if (!esSeguro) {
+    return 'No es recomendable entrar.'
+  }
+
+  if (nivel === 'ALTO') {
+    return 'No es recomendable entrar.'
+  }
+
+  if (nivel === 'BAJO') {
+    return 'Puede entrar con precaución.'
+  }
+
+  return 'No hay recomendación clara.'
+}
+
 function formatScannerResult(data) {
   if (!data || !data.success || !data.reporte_seguridad) {
     throw new Error(data?.message || 'Respuesta inválida del servidor')
@@ -46,6 +69,7 @@ function formatScannerResult(data) {
   const advertencias = Array.isArray(evaluacion?.advertencias) ? evaluacion.advertencias : []
 
   const summary = `Riesgo: ${normalizeString(evaluacion?.nivel_riesgo)}`
+  const recommendation = getRecommendation(evaluacion)
   const detalles = [
     '🔒 INFORME DE SEGURIDAD',
     '--------------------------------------------------',
@@ -55,6 +79,7 @@ function formatScannerResult(data) {
     '⚠️  EVALUACIÓN DE RIESGO:',
     `• Nivel: ${normalizeString(evaluacion?.nivel_riesgo)}`,
     `• Seguro: ${evaluacion?.es_seguro ? 'Sí' : 'No'}`,
+    `• Recomendación: ${recommendation}`,
     `• Banderas rojas: ${evaluacion?.total_banderas_rojas ?? 0}`,
     '',
     advertencias.length > 0
