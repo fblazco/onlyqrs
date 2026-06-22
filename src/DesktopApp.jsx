@@ -14,10 +14,10 @@ function DesktopApp() {
   const [error, setError] = useState('')
 
   const analyzeLink = async (linkToAnalyze) => {
-    const payload = { link: linkToAnalyze.trim() }
+    const payload = { url: linkToAnalyze.trim() }
 
     try {
-      const response = await fetch('/api/analyze', {
+      const response = await fetch('http://localhost:3000/api/scanner/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -28,24 +28,40 @@ function DesktopApp() {
       }
 
       const data = await response.json()
+      if (data.success && data.reporte_seguridad) {
+        const reporte = data.reporte_seguridad
+        const evaluacion = reporte.evaluacion
+        return {
+          summary: `Nivel de Riesgo: ${evaluacion.nivel_riesgo}`,
+          details: `🔒 INFORME DE SEGURIDAD
+${'-'.repeat(50)}
+
+📍 URL Analizada:
+${reporte.objetivo.url_completa}
+
+⚠️  EVALUACIÓN DE RIESGO:
+• Nivel: ${evaluacion.nivel_riesgo}
+• Seguro: ${evaluacion.es_seguro ? 'Sí' : 'No'}
+• Banderas Rojas: ${evaluacion.total_banderas_rojas}
+
+${evaluacion.advertencias.length > 0 ? '🚩 ADVERTENCIAS:\n' + evaluacion.advertencias.map(a => `  • ${a}`).join('\n') : '✅ Sin advertencias'}
+
+📋 DATOS TÉCNICOS:
+• Antigüedad: ${reporte.datos_tecnicos.antiguedad_dias} días
+• Creación: ${reporte.datos_tecnicos.fecha_creacion}
+• Expiración: ${reporte.datos_tecnicos.fecha_expiracion}
+• Registrador: ${reporte.datos_tecnicos.empresa_registradora}
+• Propietario: ${reporte.datos_tecnicos.propietario.organizacion}
+• País: ${reporte.datos_tecnicos.propietario.pais}`,
+        }
+      }
       return {
-        summary: data.summary ?? 'Análisis completado',
-        details: data.details ?? JSON.stringify(data, null, 2),
+        summary: 'Análisis completado',
+        details: JSON.stringify(data, null, 2),
       }
     } catch (err) {
-      console.warn('Backend no disponible, usando resultado simulado', err)
-      return {
-        summary: 'Verificación Completada',
-        details: `✓ Verificación de seguridad completada
-
-Enlace procesado y validado localmente.
-
-Cuando el backend esté activo, recibirás información detallada sobre:
-• Validez del código QR
-• Seguridad y verificación de dominio
-• Datos decodificados
-• Análisis de riesgos potenciales`,
-      }
+      console.error('Error al conectar con el backend:', err)
+      throw err
     }
   }
 

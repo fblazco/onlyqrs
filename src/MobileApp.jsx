@@ -80,10 +80,10 @@ function MobileApp() {
   }
 
   const analyzeLink = async (linkToAnalyze) => {
-    const payload = { link: linkToAnalyze.trim() }
+    const payload = { url: linkToAnalyze.trim() }
 
     try {
-      const response = await fetch('/api/analyze', {
+      const response = await fetch('http://localhost:3000/api/scanner/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -94,20 +94,35 @@ function MobileApp() {
       }
 
       const data = await response.json()
+      if (data.success && data.reporte_seguridad) {
+        const reporte = data.reporte_seguridad
+        const evaluacion = reporte.evaluacion
+        return {
+          summary: `Riesgo: ${evaluacion.nivel_riesgo}`,
+          details: `🔒 INFORME DE SEGURIDAD
+${'-'.repeat(50)}
+
+📍 URL: ${reporte.objetivo.url_completa}
+
+⚠️  EVALUACIÓN:
+• Nivel: ${evaluacion.nivel_riesgo}
+• Seguro: ${evaluacion.es_seguro ? 'Sí' : 'No'}
+• Alertas: ${evaluacion.total_banderas_rojas}
+
+${evaluacion.advertencias.length > 0 ? '🚩 ADVERTENCIAS:\n' + evaluacion.advertencias.map(a => `• ${a}`).join('\n') : '✅ OK'}
+
+📋 DATOS:
+• Antigüedad: ${reporte.datos_tecnicos.antiguedad_dias} días
+• País: ${reporte.datos_tecnicos.propietario.pais}`,
+        }
+      }
       return {
-        summary: data.summary ?? 'Análisis recibido',
-        details: data.details ?? JSON.stringify(data, null, 2),
+        summary: 'Análisis recibido',
+        details: JSON.stringify(data, null, 2),
       }
     } catch (err) {
-      console.warn('Backend no disponible, usando resultado simulado', err)
-      return {
-        summary: 'Enlace procesado localmente',
-        details: `No se encontró un backend activo.
-
-Este es un resultado simulado para mostrar la interfaz.
-
-Cuando integres el backend, el servidor podrá devolver el detalle real aquí.`,
-      }
+      console.error('Error al conectar con el backend:', err)
+      throw err
     }
   }
 
