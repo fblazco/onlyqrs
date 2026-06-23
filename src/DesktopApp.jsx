@@ -15,21 +15,11 @@ function DesktopApp() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showMoreInfo, setShowMoreInfo] = useState(false)
-  const [selectedAnalyzer, setSelectedAnalyzer] = useState('OnlyQRs (Predeterminado)')
-  const [showAnalyzerOptions, setShowAnalyzerOptions] = useState(false)
   const [isAboutOpen, setIsAboutOpen] = useState(false)
   const [homeKey, setHomeKey] = useState(0)
-  const analyzerOptions = [
-    'OnlyQRs (Predeterminado)',
-    'VirusTotal',
-    'WhoIs',
-    'Google Safe browsing',
-    'URLScan.io',
-    'PishTank',
-  ]
 
-  const analyzeLink = async (linkToAnalyze, analyzer) => {
-    const data = await verifyScannerUrl(linkToAnalyze, analyzer)
+  const analyzeLink = async (linkToAnalyze) => {
+    const data = await verifyScannerUrl(linkToAnalyze, 'OnlyQRs (Predeterminado)')
     return formatScannerResult(data)
   }
 
@@ -50,7 +40,7 @@ function DesktopApp() {
     setShowMoreInfo(false)
 
     try {
-      const analysis = await analyzeLink(link, selectedAnalyzer)
+      const analysis = await analyzeLink(link)
       setResult(analysis)
       setStatus('✓ Análisis exitoso')
     } catch (err) {
@@ -68,29 +58,56 @@ function DesktopApp() {
           <div className="card-header">
             <div>
               <p className="section-label">Conoce OnlyQRs</p>
-              <h2>Sobre nuestra plataforma</h2>
+              <h2>Protección completa contra phishing y quishing</h2>
             </div>
           </div>
 
-          <div className="about-content">
-            <p>
-              OnlyQRs ofrece una experiencia profesional para validar enlaces QR con un análisis claro y confiable.
-              Nuestra plataforma combina verificación de seguridad, evaluaciones de reputación y resultados accesibles para
-              ayudarte a tomar decisiones informadas al instante.
-            </p>
-
-            <ul>
-              <li>Escaneo rápido de URLs y detección de riesgos en tiempo real.</li>
-              <li>Soporte para múltiples analizadores de seguridad.</li>
-              <li>Interfaz limpia pensada para uso profesional en escritorio.</li>
-              <li>Acceso sencillo a informes detallados y recomendaciones.</li>
-            </ul>
-
-            <p>
-              Esta página está diseñada para mostrar cómo funciona OnlyQRs en un entorno de escritorio. La versión móvil
-              se implementará posteriormente para brindar una experiencia igual de ágil y confiable.
+          <div className="about-hero">
+            <p className="about-lead">
+              OnlyQRs combina detección automática, múltiples motores de seguridad y análisis con inteligencia artificial
+              para que cualquier usuario, incluso sin experiencia, identifique rápidamente si un enlace QR es seguro o malicioso.
             </p>
           </div>
+
+          <div className="about-grid">
+            <article className="about-card">
+              <h3>Protección clara</h3>
+              <p>
+                Detectamos prácticas de phishing y quishing en URLs y te mostramos si la página es confiable, sospechosa o peligrosa.
+              </p>
+            </article>
+
+            <article className="about-card">
+              <h3>Análisis multicapa</h3>
+              <p>
+                Revisamos reputación, historial, certificados, dominio y contenido externo para darte un veredicto más seguro.
+              </p>
+            </article>
+
+            <article className="about-card">
+              <h3>Diseñado para todos</h3>
+              <p>
+                Interfaz limpia, lenguaje sencillo y resultados automáticos para que el usuario tome decisiones rápidas sin dudas.
+              </p>
+            </article>
+          </div>
+
+          <div className="about-tech">
+            <p className="section-label">Análisis basado en</p>
+            <div className="tech-list">
+              <span className="tech-pill">VirusTotal</span>
+              <span className="tech-pill">Google Safe Browsing</span>
+              <span className="tech-pill">WhoIS</span>
+              <span className="tech-pill">PhishTank</span>
+              <span className="tech-pill">URLScan.io</span>
+              <span className="tech-pill">Inteligencia Artificial</span>
+            </div>
+          </div>
+
+          <p className="about-note">
+            Nuestra meta es que navegar con enlaces QR sea lo más seguro posible: combinamos datos de fuentes confiables con
+            análisis implícito para que los usuarios detecten fácilmente si una página es buena o mala.
+          </p>
 
           <div className="about-actions">
             <button
@@ -143,34 +160,7 @@ function DesktopApp() {
             />
           </label>
 
-          <div className="analyzer-selector">
-            <span className="analyzer-label">Elegir analizador</span>
-            <button
-              type="button"
-              className="analyzer-toggle-btn"
-              onClick={() => setShowAnalyzerOptions((current) => !current)}
-            >
-              {selectedAnalyzer}
-              <span className="analyzer-chevron">▾</span>
-            </button>
-            {showAnalyzerOptions && (
-              <div className="analyzer-options-pc">
-                {analyzerOptions.map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    className={`analyzer-option-btn ${selectedAnalyzer === option ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedAnalyzer(option)
-                      setShowAnalyzerOptions(false)
-                    }}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+
 
           <div className="actions">
             <button type="submit" disabled={isLoading}>
@@ -222,7 +212,7 @@ function DesktopApp() {
             className="secondary-action-btn"
             onClick={() => setIsAboutOpen(true)}
           >
-            ¿Cómo decidir?
+            Sobre OnlyQRs
           </button>
         </div>
       </section>

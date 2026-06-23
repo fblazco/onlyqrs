@@ -21,17 +21,8 @@ function MobileApp() {
   const [mode, setMode] = useState('idle') // 'idle' | 'scanning' | 'manual'
   const [torchActive, setTorchActive] = useState(false)
   const [showMoreInfo, setShowMoreInfo] = useState(false)
-  const [selectedAnalyzer, setSelectedAnalyzer] = useState('OnlyQRs (predeterminado)')
-  const [showAnalyzerOptions, setShowAnalyzerOptions] = useState(false)
   const [showAnalyzerGuide, setShowAnalyzerGuide] = useState(false)
-  const analyzerOptions = [
-    'OnlyQRs (predeterminado)',
-    'VirusTotal',
-    'WhoIs',
-    'Google Safe browsing',
-    'URLScan.io',
-    'PishTank',
-  ]
+  const [showAboutModal, setShowAboutModal] = useState(false)
   const scannerRef = useRef(null)
 
   useEffect(() => {
@@ -93,7 +84,7 @@ function MobileApp() {
   }
 
   const analyzeLink = async (linkToAnalyze) => {
-    const data = await verifyScannerUrl(linkToAnalyze, selectedAnalyzer)
+    const data = await verifyScannerUrl(linkToAnalyze, 'OnlyQRs (predeterminado)')
     return formatScannerResult(data)
   }
 
@@ -102,7 +93,6 @@ function MobileApp() {
     setManualLink('')
     setError('')
     setResult(initialResult)
-    setShowAnalyzerOptions(false)
     setMode('scanning')
   }
 
@@ -111,7 +101,6 @@ function MobileApp() {
     setManualLink('')
     setError('')
     setResult(initialResult)
-    setShowAnalyzerOptions(false)
     setMode('manual')
   }
 
@@ -176,6 +165,13 @@ function MobileApp() {
       <header className="mobile-header">
         <img src="/logo.png" alt="OnlyQRs Logo" className="mobile-logo" />
         <p className="mobile-subtitle">Escanea o pega QR desde tu teléfono</p>
+        <button
+          type="button"
+          className="btn-secondary about-info-btn"
+          onClick={() => setShowAboutModal(true)}
+        >
+          Sobre OnlyQRs
+        </button>
       </header>
 
       {showAnalyzerGuide ? (
@@ -293,44 +289,7 @@ function MobileApp() {
                 <span className="mode-text">Escribir manualmente</span>
               </button>
             </div>
-            <div className="analyzer-selection-block">
-              <h2>¿Qué analizador quieres usar?</h2>
-              <button
-                type="button"
-                className="mode-btn analyzer-select-btn"
-                onClick={() => setShowAnalyzerOptions((current) => !current)}
-              >
-                <span className="mode-text">{selectedAnalyzer}</span>
-                <span className="analyzer-chevron">▾</span>
-              </button>
-              {showAnalyzerOptions && (
-                <div className="analyzer-options">
-                  {analyzerOptions.map((option) => (
-                    <button
-                      type="button"
-                      key={option}
-                      className={`mode-btn analyzer-option-btn ${selectedAnalyzer === option ? 'selected' : ''}`}
-                      onClick={() => {
-                        setSelectedAnalyzer(option)
-                        setShowAnalyzerOptions(false)
-                      }}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <button
-                type="button"
-                className="mode-btn guide-btn"
-                onClick={() => {
-                  setShowAnalyzerGuide(true)
-                  setShowAnalyzerOptions(false)
-                }}
-              >
-                ¿Cómo decidir?
-              </button>
-            </div>
+
           </div>
         </section>
       )}
@@ -458,6 +417,57 @@ function MobileApp() {
             </div>
             <div className="education-modal-content">
               <pre>{result.education}</pre>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showAboutModal ? (
+        <div className="education-modal-overlay" onClick={() => setShowAboutModal(false)}>
+          <div className="education-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="education-modal-header">
+              <h3>Protección completa contra phishing y quishing</h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setShowAboutModal(false)}
+                aria-label="Cerrar información"
+              >
+                ×
+              </button>
+            </div>
+            <div className="education-modal-content about-modal-content">
+              <p>
+                OnlyQRs combina detección automática, múltiples motores de seguridad y análisis con inteligencia artificial para que cualquier usuario, incluso sin experiencia, identifique rápidamente si un enlace QR es seguro o malicioso.
+              </p>
+
+              <div className="about-modal-grid">
+                <div className="about-modal-card">
+                  <h4>Protección clara</h4>
+                  <p>Detectamos phishing y quishing en URLs y te mostramos si un enlace es confiable, sospechoso o peligroso.</p>
+                </div>
+                <div className="about-modal-card">
+                  <h4>Análisis multicapa</h4>
+                  <p>Revisamos reputación, historial, certificados, dominio y contenido externo para darte un veredicto más seguro.</p>
+                </div>
+                <div className="about-modal-card">
+                  <h4>Fácil de usar</h4>
+                  <p>Interfaz limpia y resultados automáticos para que el usuario tome decisiones rápidas sin dudas.</p>
+                </div>
+              </div>
+
+              <div className="tech-list about-tech-list">
+                <span className="tech-pill">VirusTotal</span>
+                <span className="tech-pill">Google Safe Browsing</span>
+                <span className="tech-pill">WhoIS</span>
+                <span className="tech-pill">PhishTank</span>
+                <span className="tech-pill">URLScan.io</span>
+                <span className="tech-pill">Inteligencia Artificial</span>
+              </div>
+
+              <p className="about-note">
+                Nuestra meta es que navegar con enlaces QR sea lo más seguro posible: combinamos datos de fuentes confiables con análisis inteligente para que los usuarios detecten fácilmente si una página es buena o mala.
+              </p>
             </div>
           </div>
         </div>
