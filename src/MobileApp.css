@@ -345,6 +345,13 @@
   color: #25222a;
 }
 
+/* Smaller header when showing risk level */
+.result-title.risk-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: #25222a;
+}
+
 .result-details {
   background: #ebe9f1;
     padding: 14px;
@@ -1043,4 +1050,39 @@
   color: #6f6574;
   font-size: 14px;
   margin: 0;
+}
+
+/* Result content with icons */
+.result-content-with-icons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: #25222a;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.result-line-with-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.result-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.result-line-text {
+  flex: 1;
+}
+
+.result-line {
+  white-space: pre-wrap;
+  word-break: break-word;
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
-import { verifyScannerUrl, formatScannerResult } from './api'
+import { verifyScannerUrl, fetchAnalyticsReport, formatScannerResult, formatAnalyticsReport } from './api'
+import ResultContent from './ResultContent'
 
 const initialResult = {
   summary: '',
@@ -21,6 +22,25 @@ function DesktopApp() {
   const analyzeLink = async (linkToAnalyze) => {
     const data = await verifyScannerUrl(linkToAnalyze, 'OnlyQRs (Predeterminado)')
     return formatScannerResult(data)
+  }
+
+  const loadAnalyticsReport = async () => {
+    setError('')
+    setIsLoading(true)
+    setStatus('Cargando reporte de analíticas...')
+    setResult(initialResult)
+    setShowMoreInfo(false)
+
+    try {
+      const data = await fetchAnalyticsReport()
+      setResult(formatAnalyticsReport(data))
+      setStatus('✓ Reporte de analíticas cargado')
+    } catch (err) {
+      setError(err.message || 'No se pudo cargar el reporte de analíticas')
+      setStatus('Error al cargar analíticas')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSubmit = async (event) => {
@@ -166,6 +186,14 @@ function DesktopApp() {
             <button type="submit" disabled={isLoading}>
               {isLoading ? '⟳ Procesando análisis' : '▶ Analizar'}
             </button>
+            <button
+              type="button"
+              className="secondary-action-btn"
+              disabled={isLoading}
+              onClick={loadAnalyticsReport}
+            >
+              {isLoading ? '⟳ Cargando...' : '📊 Ver reporte de analíticas'}
+            </button>
             <p className="help-text">
               El estado aparecerá en el panel derecho junto con un análisis detallado en tiempo real.
             </p>
@@ -186,15 +214,21 @@ function DesktopApp() {
             <div className="result-header">
               <div>
                 <p className="section-label">Resultado del Análisis</p>
-                <h2>{result.summary || 'Esperando entrada'}</h2>
+                <h2 className={result.header ? 'risk-header' : ''}>
+                  {result.header ? `Nivel de riesgo: ${result.header}` : (result.summary ? 'Resumen del análisis' : 'Esperando entrada')}
+                </h2>
               </div>
             </div>
 
             <div className="result-body">
-              <pre>{result.details || 'Ingresa un URL y presiona "Analizar" para ver los detalles aquí.'}</pre>
+              {result.summary ? (
+                <ResultContent content={`${result.summary}${result.details ? '\n\n' + result.details : ''}`} />
+              ) : (
+                <pre>Ingresa un URL y presiona "Analizar" para ver los detalles aquí.</pre>
+              )}
             </div>
 
-            {result.summary ? (
+            {result.summary && !result.isAnalytics ? (
               <button
                 type="button"
                 className="more-info-btn"
@@ -221,7 +255,7 @@ function DesktopApp() {
         <div className="education-modal-overlay" onClick={() => setShowMoreInfo(false)}>
           <div className="education-modal" onClick={(event) => event.stopPropagation()}>
             <div className="education-modal-header">
-              <h3>Sección educativa</h3>
+              <h3>Más información</h3>
               <button
                 type="button"
                 className="modal-close-btn"
@@ -232,7 +266,7 @@ function DesktopApp() {
               </button>
             </div>
             <div className="education-modal-content">
-              <pre>{result.education}</pre>
+              <ResultContent content={result.education} />
             </div>
           </div>
         </div>
