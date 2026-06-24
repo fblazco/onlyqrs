@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import QrScanner from 'qr-scanner'
 import './MobileApp.css'
-import { verifyScannerUrl, formatScannerResult } from './api'
+import { verifyScannerUrl, fetchAnalyticsReport, formatScannerResult, formatAnalyticsReport } from './api'
+import ResultContent from './ResultContent'
 import cameraIcon from './assets/camera-icon.svg'
 import pencilIcon from './assets/pencil-icon.svg'
+import analyticsIcon from './assets/analytics-icon.svg'
 
 const initialResult = {
   summary: '',
@@ -19,11 +21,19 @@ function MobileApp() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [mode, setMode] = useState('idle') // 'idle' | 'scanning' | 'manual'
-  const [torchActive, setTorchActive] = useState(false)
   const [showMoreInfo, setShowMoreInfo] = useState(false)
   const [showAnalyzerGuide, setShowAnalyzerGuide] = useState(false)
   const [showAboutModal, setShowAboutModal] = useState(false)
   const scannerRef = useRef(null)
+
+  const handleQrScanned = (qrValue) => {
+    setScannedLink(qrValue)
+    setStatus('QR escaneado ✓')
+    setMode('idle')
+    if (scannerRef.current) {
+      scannerRef.current.stop()
+    }
+  }
 
   useEffect(() => {
     const startScanner = async () => {
@@ -74,18 +84,28 @@ function MobileApp() {
     }
   }, [mode])
 
-  const handleQrScanned = (qrValue) => {
-    setScannedLink(qrValue)
-    setStatus('QR escaneado ✓')
-    setMode('idle')
-    if (scannerRef.current) {
-      scannerRef.current.stop()
-    }
-  }
-
   const analyzeLink = async (linkToAnalyze) => {
     const data = await verifyScannerUrl(linkToAnalyze, 'OnlyQRs (predeterminado)')
     return formatScannerResult(data)
+  }
+
+  const loadAnalyticsReport = async () => {
+    setError('')
+    setIsLoading(true)
+    setStatus('Cargando reporte de analíticas...')
+    setResult(initialResult)
+    setShowMoreInfo(false)
+
+    try {
+      const data = await fetchAnalyticsReport()
+      setResult(formatAnalyticsReport(data))
+      setStatus('✓ Reporte de analíticas cargado')
+    } catch (err) {
+      setError(err.message || 'No se pudo cargar el reporte de analíticas')
+      setStatus('Error al cargar analíticas')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleStartScanning = () => {
@@ -140,22 +160,6 @@ function MobileApp() {
     setError('')
     setShowMoreInfo(false)
     setMode('idle')
-  }
-
-  const toggleTorch = async () => {
-    if (scannerRef.current) {
-      try {
-        if (torchActive) {
-          await scannerRef.current.turnOffFlash()
-          setTorchActive(false)
-        } else {
-          await scannerRef.current.turnOnFlash()
-          setTorchActive(true)
-        }
-      } catch (err) {
-        console.error('Error toggling flash:', err)
-      }
-    }
   }
 
   const activeLink = scannedLink || manualLink
@@ -288,6 +292,15 @@ function MobileApp() {
                 <img src={pencilIcon} alt="Lápiz" className="mode-icon-img" />
                 <span className="mode-text">Escribir manualmente</span>
               </button>
+                <button
+                  type="button"
+                  className="mode-btn analytics-btn"
+                  onClick={loadAnalyticsReport}
+                  disabled={isLoading}
+                >
+                  <img src={analyticsIcon} alt="Analíticas" className="mode-icon-img" />
+                  <span className="mode-text">Ver analíticas</span>
+                </button>
             </div>
 
           </div>
@@ -367,6 +380,7 @@ function MobileApp() {
             >
               {isLoading ? 'Analizando...' : 'Analizar QR'}
             </button>
+            {/* Analíticas: botón movido al selector principal para mantener la opción visible antes de escanear/escribir */}
             <button
               type="button"
               className="btn-secondary"
@@ -383,21 +397,25 @@ function MobileApp() {
         <div className="error-banner">{error}</div>
       ) : null}
 
-      {result.summary && (
+      {(result.summary || result.details) && (
         <section className="result-section-mobile">
-          <h2 className="result-title">{result.summary}</h2>
+          <h2 className={`result-title ${result.header ? 'risk-header' : ''}`}>
+            {result.header ? `Nivel de riesgo: ${result.header}` : 'Resultado del Análisis'}
+          </h2>
 
           <div className="result-details">
-            <pre>{result.details}</pre>
+            <ResultContent content={result.summary ? `${result.summary}${result.details ? '\n\n' + result.details : ''}` : result.details} />
           </div>
 
-          <button
-            type="button"
-            className="btn-secondary more-info-btn"
-            onClick={() => setShowMoreInfo((current) => !current)}
-          >
-            {showMoreInfo ? 'Ocultar más información' : 'Ver más información'}
-          </button>
+          { !result.isAnalytics && (
+            <button
+              type="button"
+              className="btn-secondary more-info-btn"
+              onClick={() => setShowMoreInfo((current) => !current)}
+            >
+              {showMoreInfo ? 'Ocultar más información' : 'Ver más información'}
+            </button>
+          )}
         </section>
       )}
 
@@ -405,7 +423,7 @@ function MobileApp() {
         <div className="education-modal-overlay" onClick={() => setShowMoreInfo(false)}>
           <div className="education-modal" onClick={(event) => event.stopPropagation()}>
             <div className="education-modal-header">
-              <h3>Sección educativa</h3>
+              <h3>Más información</h3>
               <button
                 type="button"
                 className="modal-close-btn"
@@ -416,7 +434,7 @@ function MobileApp() {
               </button>
             </div>
             <div className="education-modal-content">
-              <pre>{result.education}</pre>
+              <ResultContent content={result.education} />
             </div>
           </div>
         </div>
